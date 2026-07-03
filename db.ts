@@ -42,7 +42,8 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS products (
     id TEXT PRIMARY KEY,
     description TEXT NOT NULL UNIQUE,
-    unit_price REAL
+    unit_price REAL,
+    unit TEXT DEFAULT 'M'
   );
 `);
 

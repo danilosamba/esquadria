@@ -129,6 +129,45 @@ router.get('/salespersons', (req, res) => {
   res.json(users);
 });
 
+// ================= PRODUCTS =================
+router.get('/products', (req: any, res) => {
+  const products = db.prepare('SELECT * FROM products ORDER BY description ASC').all();
+  res.json(products);
+});
+
+router.post('/products', adminMiddleware, (req, res) => {
+  const { description, unit_price, unit } = req.body;
+  if (!description) return res.status(400).json({ error: 'Descrição é obrigatória' });
+  try {
+    const id = crypto.randomUUID();
+    db.prepare('INSERT INTO products (id, description, unit_price, unit) VALUES (?, ?, ?, ?)').run(id, description, unit_price || 0, unit || 'M');
+    res.json({ message: 'Produto cadastrado com sucesso!', id });
+  } catch (e) {
+    res.status(400).json({ error: 'Erro ao cadastrar produto. Já existe um com essa descrição?' });
+  }
+});
+
+router.put('/products/:id', adminMiddleware, (req, res) => {
+  const { id } = req.params;
+  const { description, unit_price, unit } = req.body;
+  try {
+    db.prepare('UPDATE products SET description = ?, unit_price = ?, unit = ? WHERE id = ?').run(description, unit_price || 0, unit || 'M', id);
+    res.json({ message: 'Produto atualizado com sucesso!' });
+  } catch (e) {
+    res.status(400).json({ error: 'Erro ao atualizar produto' });
+  }
+});
+
+router.delete('/products/:id', adminMiddleware, (req, res) => {
+  const { id } = req.params;
+  try {
+    db.prepare('DELETE FROM products WHERE id = ?').run(id);
+    res.json({ message: 'Produto excluído com sucesso!' });
+  } catch (e) {
+    res.status(500).json({ error: 'Erro ao excluir produto' });
+  }
+});
+
 // ================= BUDGETS =================
 router.get('/budgets', (req: any, res) => {
   // Everyone sees all budgets now
@@ -178,16 +217,16 @@ router.post('/budgets', (req: any, res) => {
   // Save products for autocomplete
   if (budget.items && Array.isArray(budget.items)) {
     const insertProd = db.prepare(`
-      INSERT OR IGNORE INTO products (id, description, unit_price) VALUES (?, ?, ?)
+      INSERT OR IGNORE INTO products (id, description, unit_price, unit) VALUES (?, ?, ?, ?)
     `);
     const updateProd = db.prepare(`
-        UPDATE products SET unit_price = ? WHERE description = ?
+        UPDATE products SET unit_price = ?, unit = ? WHERE description = ?
     `);
     db.transaction(() => {
         budget.items.forEach((item: any) => {
             if (item.description) {
-                insertProd.run(crypto.randomUUID(), item.description, item.unitPrice || 0);
-                updateProd.run(item.unitPrice || 0, item.description);
+                insertProd.run(crypto.randomUUID(), item.description, item.unitPrice || 0, item.unit || 'M');
+                updateProd.run(item.unitPrice || 0, item.unit || 'M', item.description);
             }
         });
     })();
@@ -227,7 +266,7 @@ router.get('/autocomplete/products', (req, res) => {
   const q = req.query.q as string;
   if (!q) return res.json([]);
   const products = db.prepare(`
-    SELECT description, MAX(unit_price) as unit_price 
+    SELECT description, MAX(unit_price) as unit_price, MAX(unit) as unit
     FROM products 
     WHERE description LIKE ? 
     GROUP BY description COLLATE NOCASE

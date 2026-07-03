@@ -73,6 +73,10 @@ switch ($resource) {
         require_once 'autocomplete_handler.php';
         handle_autocomplete($pdo, $id);
         break;
+    case 'products':
+        require_once 'products_handler.php';
+        handle_products($pdo, $user, $id);
+        break;
     default:
         http_response_code(404);
         echo json_encode(['error' => 'Endpoint não encontrado']);
