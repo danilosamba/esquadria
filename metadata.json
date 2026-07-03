@@ -1,0 +1,5 @@
+{
+  "name": "Sistema de Orçamentos Luz Iluminação",
+  "description": "Aplicação web moderna para gerenciamento e criação de orçamentos de iluminação com persistência local.",
+  "requestFramePermissions": []
+}

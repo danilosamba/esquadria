@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Luz Iluminação - Orçamentos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+            },
+            colors: {
+              gray: {
+                50: '#f9fafb',
+                100: '#f3f4f6',
+                200: '#e5e7eb',
+                300: '#d1d5db',
+                400: '#9ca3af',
+                500: '#6b7280',
+                600: '#4b5563',
+                700: '#374151',
+                800: '#1f2937',
+                900: '#111827',
+              }
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+      /* Hide scrollbar for tabs */
+      .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+      }
+      .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+      }
+      .custom-scrollbar::-webkit-scrollbar {
+          height: 10px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-track {
+          background: #111827;
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #6366f1;
+          border-radius: 10px;
+          border: 2px solid #111827;
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: #818cf8;
+      }
+      /* Hide numeric input spinners */
+      input[type=number]::-webkit-inner-spin-button, 
+      input[type=number]::-webkit-outer-spin-button { 
+        -webkit-appearance: none; 
+        margin: 0; 
+      }
+      input[type=number] {
+        -moz-appearance: textfield;
+      }
+
+      @media print {
+        @page { margin: 1cm; size: A4; }
+        body { 
+          -webkit-print-color-adjust: exact; 
+          background-color: white !important;
+          color: black !important;
+          height: auto !important;
+          overflow: visible !important;
+        }
+        .no-print { display: none !important; }
+        .print-only { display: block !important; }
+        
+        /* Reset containers for full width */
+        #root, main, .max-w-5xl { 
+          max-width: none !important; 
+          width: 100% !important; 
+          margin: 0 !important;
+          padding: 0 !important;
+          box-shadow: none !important;
+        }
+
+        /* Clean inputs for print */
+        input, textarea, select {
+          border: none !important;
+          background: transparent !important;
+          resize: none;
+          padding: 0 !important;
+          margin: 0 !important;
+          appearance: none;
+          box-shadow: none !important;
+          font-family: inherit;
+        }
+        
+        /* Ensure table borders are visible */
+        table { border-collapse: collapse; width: 100%; }
+        th, td { 
+          border: 1px solid #ddd !important; 
+          padding: 8px !important;
+        }
+        thead th { background-color: #f3f4f6 !important; font-weight: bold; }
+        
+        /* Layout adjustments */
+        .print-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
+        
+        /* Hide placeholders */
+        ::placeholder { color: transparent !important; }
+      }
+      .print-only { display: none; }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "react": "https://esm.sh/react@^19.2.3",
+    "lucide-react": "https://esm.sh/lucide-react@^0.562.0"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body class="bg-gray-100 text-gray-900 h-screen overflow-hidden flex flex-col font-sans">
+    <div id="root" class="h-full flex flex-col"></div>
+  <script type="module" src="/index.tsx"></script>
+</body>
+</html>
