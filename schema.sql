@@ -26,7 +26,8 @@ CREATE TABLE IF NOT EXISTS clients (
 CREATE TABLE IF NOT EXISTS products (
     id VARCHAR(36) PRIMARY KEY,
     description VARCHAR(255) NOT NULL UNIQUE,
-    unit_price DECIMAL(15, 2)
+    unit_price DECIMAL(15, 2),
+    unit VARCHAR(10) DEFAULT "M"
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS budgets (

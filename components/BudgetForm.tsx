@@ -79,6 +79,61 @@ const CurrencyInput = ({
   );
 };
 
+const AutocompleteDropdown = ({ query, onSelect }: { query: string, onSelect: (p: any) => void }) => {
+  const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [show, setShow] = useState(false);
+  const { token } = useAuth();
+  const lastQuery = useRef('');
+
+  useEffect(() => {
+    if (query.length < 2) {
+      setSuggestions([]);
+      setShow(false);
+      return;
+    }
+
+    if (query === lastQuery.current) return;
+
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/autocomplete/products?q=${encodeURIComponent(query)}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setSuggestions(data);
+          setShow(data.length > 0);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [query, token]);
+
+  if (!show) return null;
+
+  return (
+    <div className="absolute left-0 top-full w-full bg-white border border-gray-300 shadow-lg z-[200] max-h-48 overflow-y-auto no-print">
+      {suggestions.map((p, i) => (
+        <div 
+          key={i} 
+          className="p-2 hover:bg-gray-100 cursor-pointer text-xs flex justify-between border-b border-gray-100"
+          onClick={() => {
+            onSelect(p);
+            lastQuery.current = p.description;
+            setShow(false);
+          }}
+        >
+          <span className="font-bold">{p.description}</span>
+          <span className="text-gray-500">{p.unit} - {formatCurrency(p.unit_price)}</span>
+        </div>
+      ))}
+    </div>
+  );
+};
+
 const BudgetForm: React.FC<BudgetFormProps> = ({ budget, onUpdate, onDelete }) => {
   const [localBudget, setLocalBudget] = useState<Budget>(budget);
   const { token } = useAuth();
@@ -170,6 +225,7 @@ const BudgetForm: React.FC<BudgetFormProps> = ({ budget, onUpdate, onDelete }) =
       itemNumber: '',
       description: '',
       quantity: 1,
+      unit: 'M',
       unitPrice: 0,
       discountPercent: 0,
       total: 0,
@@ -196,6 +252,7 @@ const BudgetForm: React.FC<BudgetFormProps> = ({ budget, onUpdate, onDelete }) =
       itemNumber: '',
       description: '',
       quantity: 1,
+      unit: 'M',
       unitPrice: 0,
       discountPercent: 0,
       total: 0,
@@ -221,18 +278,21 @@ const BudgetForm: React.FC<BudgetFormProps> = ({ budget, onUpdate, onDelete }) =
   };
 
   const handleItemChange = (id: string, field: keyof BudgetItem, value: string | number) => {
+    handleMultipleItemChange(id, { [field]: value });
+  };
+
+  const handleMultipleItemChange = (id: string, updates: Partial<BudgetItem>) => {
     const newItems = localBudget.items.map(item => {
       if (item.id !== id) return item;
-      const updatedItem = { ...item, [field]: value };
+      const updatedItem = { ...item, ...updates };
       
-      if (field === 'quantity' || field === 'unitPrice' || field === 'discountPercent') {
-        const qty = field === 'quantity' ? Number(value) : item.quantity;
-        const price = field === 'unitPrice' ? Number(value) : item.unitPrice;
-        const disc = field === 'discountPercent' ? Number(value) : item.discountPercent;
-        updatedItem.total = qty * price * (1 - disc / 100);
-      }
-      if (field === 'description') {
-        updatedItem.description = String(value).toUpperCase();
+      const qty = updatedItem.quantity;
+      const price = updatedItem.unitPrice;
+      const disc = updatedItem.discountPercent;
+      updatedItem.total = qty * price * (1 - disc / 100);
+      
+      if (updates.description !== undefined) {
+        updatedItem.description = String(updates.description).toUpperCase();
       }
       return updatedItem;
     });
@@ -419,6 +479,7 @@ const BudgetForm: React.FC<BudgetFormProps> = ({ budget, onUpdate, onDelete }) =
                 <tr>
                     <th className="px-2 py-2 border border-gray-300 text-center w-10">#</th>
                     <th className="px-2 py-2 border border-gray-300">Descrição do Produto</th>
+                    <th className="px-2 py-2 border border-gray-300 text-center w-12">Unid.</th>
                     <th className="px-2 py-2 border border-gray-300 text-center w-16">Qtd.</th>
                     <th className="px-2 py-2 border border-gray-300 text-right w-24">Vl. Unit.</th>
                     <th className="px-2 py-2 border border-gray-300 text-center w-16">Desc%</th>
@@ -435,7 +496,7 @@ const BudgetForm: React.FC<BudgetFormProps> = ({ budget, onUpdate, onDelete }) =
                         <td
                           className="px-2 py-1 border border-gray-300 relative"
                           style={{ paddingLeft: `${(item.level || 0) * 1.5 + 0.5}rem` }}
-                          colSpan={item.isTopic ? 4 : 1}
+                          colSpan={item.isTopic ? 5 : 1}
                         >
                             <div className="flex items-center gap-2">
                               <div className="flex flex-col no-print">
@@ -448,11 +509,38 @@ const BudgetForm: React.FC<BudgetFormProps> = ({ budget, onUpdate, onDelete }) =
                                   value={item.description}
                                   placeholder={item.isTopic ? "TÓPICO..." : "DESCRIÇÃO..."}
                                   onChange={(e) => handleItemChange(item.id, 'description', e.target.value)}
+                                  autoComplete="off"
                               />
+                              {!item.isTopic && (
+                                <AutocompleteDropdown 
+                                  query={item.description} 
+                                  onSelect={(p) => {
+                                    handleMultipleItemChange(item.id, {
+                                      description: p.description,
+                                      unit: p.unit,
+                                      unitPrice: p.unit_price
+                                    });
+                                  }}
+                                />
+                              )}
                             </div>
                         </td>
                         {!item.isTopic && (
                           <>
+                            <td className="px-2 py-1 border border-gray-300">
+                                <select
+                                    className="w-full bg-transparent text-center focus:outline-none p-0 text-xs font-normal appearance-none cursor-pointer"
+                                    value={item.unit}
+                                    onChange={(e) => handleItemChange(item.id, 'unit', e.target.value)}
+                                >
+                                    <option value="M">M</option>
+                                    <option value="M2">M2</option>
+                                    <option value="M3">M3</option>
+                                    <option value="CM">CM</option>
+                                    <option value="MM">MM</option>
+                                    <option value="UN">UN</option>
+                                </select>
+                            </td>
                             <td className="px-2 py-1 border border-gray-300">
                                 <input
                                     type="number"
@@ -502,7 +590,7 @@ const BudgetForm: React.FC<BudgetFormProps> = ({ budget, onUpdate, onDelete }) =
                 {/* Linhas vazias para preencher visualmente se tiver poucos itens (apenas na impressão) */}
                 {localBudget.items.length < 5 && (
                     <tr className="print:table-row hidden h-8 border border-gray-300">
-                      <td colSpan={6} className="bg-gray-50 opacity-20"></td>
+                      <td colSpan={7} className="bg-gray-50 opacity-20"></td>
                     </tr>
                 )}
             </tbody>
