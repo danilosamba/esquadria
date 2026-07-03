@@ -21,7 +21,7 @@ function handle_autocomplete($pdo, $type) {
 
     } elseif ($type === 'products') {
         $stmt = $pdo->prepare("
-            SELECT description, MAX(unit_price) as unit_price
+            SELECT description, MAX(unit_price) as unit_price, MAX(unit) as unit
             FROM products
             WHERE description LIKE ?
             GROUP BY description

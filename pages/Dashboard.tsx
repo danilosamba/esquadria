@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Upload, Layout, Lightbulb, Save, Database, LogOut, Users, UsersRound } from 'lucide-react';
+import { Plus, Search, Upload, Layout, Lightbulb, Save, Database, LogOut, Users, UsersRound, Package } from 'lucide-react';
 import BudgetForm from '../components/BudgetForm';
 import SplashScreen from '../components/SplashScreen';
 import AdminUsers from '../components/AdminUsers';
+import AdminProducts from '../components/AdminProducts';
 import { Budget, BudgetBackup, Salesperson } from '../types';
 import { generateBudgetNumber } from '../utils';
 import { useAuth } from '../contexts/AuthContext';
@@ -15,7 +16,7 @@ const Dashboard: React.FC = () => {
   const [activeBudgetId, setActiveBudgetId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [showSplash, setShowSplash] = useState(true);
-  const [viewMode, setViewMode] = useState<'budgets' | 'users'>('budgets');
+  const [viewMode, setViewMode] = useState<'budgets' | 'users' | 'products'>('budgets');
   
   // Super Admin view mode (show all or just mine)
   const [showAllUsersBudgets, setShowAllUsersBudgets] = useState(false);
@@ -334,13 +335,22 @@ const Dashboard: React.FC = () => {
               </button>
 
               {user?.is_admin && (
-                <button 
-                  onClick={() => setViewMode(viewMode === 'users' ? 'budgets' : 'users')}
-                  className={`flex items-center gap-2 px-3 py-1.5 rounded text-sm font-medium transition-colors ${viewMode === 'users' ? 'bg-indigo-600 text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white'}`}
-                >
-                  <Users size={18} />
-                  <span>Usuários</span>
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setViewMode(viewMode === 'products' ? 'budgets' : 'products')}
+                    className={`flex items-center gap-2 px-3 py-1.5 rounded text-sm font-medium transition-colors ${viewMode === 'products' ? 'bg-indigo-600 text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white'}`}
+                  >
+                    <Package size={18} />
+                    <span>Produtos</span>
+                  </button>
+                  <button
+                    onClick={() => setViewMode(viewMode === 'users' ? 'budgets' : 'users')}
+                    className={`flex items-center gap-2 px-3 py-1.5 rounded text-sm font-medium transition-colors ${viewMode === 'users' ? 'bg-indigo-600 text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white'}`}
+                  >
+                    <Users size={18} />
+                    <span>Usuários</span>
+                  </button>
+                </div>
               )}
 
               <div className="flex items-center gap-2 pl-2">
@@ -401,6 +411,8 @@ const Dashboard: React.FC = () => {
       <main className="flex-1 overflow-y-auto bg-gray-200 p-4 print:p-0 print:bg-white print:overflow-visible">
         {viewMode === 'users' ? (
            <AdminUsers />
+        ) : viewMode === 'products' ? (
+           <AdminProducts />
         ) : activeBudget ? (
           <BudgetForm 
             budget={activeBudget}
